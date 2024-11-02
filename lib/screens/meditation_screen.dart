@@ -136,8 +136,6 @@ class MeditationScreenState extends State<MeditationScreen>
                 const SizedBox(height: 40),
               ],
               ElevatedButton(
-                child: Text(_isRunning ? 'Stop' : 'Start',
-                    style: const TextStyle(fontSize: 20, color: Colors.white)),
                 onPressed: _isRunning ? _stopTimer : _startTimer,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: darkGreen,
@@ -147,6 +145,8 @@ class MeditationScreenState extends State<MeditationScreen>
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
+                child: Text(_isRunning ? 'Stop' : 'Start',
+                    style: const TextStyle(fontSize: 20, color: Colors.white)),
               ),
             ],
           ),
@@ -157,13 +157,13 @@ class MeditationScreenState extends State<MeditationScreen>
 
   Widget _buildCircleButton(IconData icon, VoidCallback onPressed) {
     return ElevatedButton(
-      child: Icon(icon, color: primaryGreen),
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         shape: const CircleBorder(),
         padding: const EdgeInsets.all(20),
         backgroundColor: Colors.white,
       ),
+      child: Icon(icon, color: primaryGreen),
     );
   }
 

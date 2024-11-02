@@ -27,7 +27,7 @@ class DhyaanApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
         '/home': (context) => const HomeScreen(),
-        '/dashboard': (context) => DashboardScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
       },
     );
   }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "852562619966",
+    "project_id": "dhyaan-67e31",
+    "storage_bucket": "dhyaan-67e31.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852562619966:android:c4257e48dc533eed45ab6f",
+        "android_client_info": {
+          "package_name": "com.priyanshu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq0ZrpbOXHJY36xpIYqMpg0HoO8s0-r1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:852562619966:android:5b30c2a08a96da3d45ab6f",
+        "android_client_info": {
+          "package_name": "com.priyanshu.dhyan.dhyan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq0ZrpbOXHJY36xpIYqMpg0HoO8s0-r1U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

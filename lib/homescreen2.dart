@@ -1,8 +1,13 @@
+import 'package:dhyan/screens/breathing_exercise.dart';
 import 'package:dhyan/screens/daily_motivation_screen.dart';
+//import 'package:dhyan/screens/detailed_progress_screen.dart';
+import 'package:dhyan/screens/journals.dart';
 import 'package:dhyan/screens/meditation_screen.dart';
 import 'package:dhyan/screens/music_screen.dart';
 import 'package:dhyan/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
+
+import 'daily_challenges.dart';
 
 class HomeScreen2 extends StatefulWidget {
   const HomeScreen2({super.key});
@@ -78,9 +83,9 @@ class HomeScreenState extends State<HomeScreen2> {
       case 1:
         return const MeditationScreen();
       case 2:
-        return MusicScreen();
+        return const MusicScreen();
       case 3:
-        return DailyMotivationScreen();
+        return const DailyMotivationScreen();
       default:
         return _buildHomeContent();
     }
@@ -159,16 +164,23 @@ class HomeScreenState extends State<HomeScreen2> {
           );
         }),
         _buildQuickActionItem('Breathing Exercise', Icons.air, () {
-          // TODO: Implement breathing exercise screen
-          _showComingSoonDialog('Breathing Exercise');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const BreathingExerciseScreen()),
+          );
         }),
         _buildQuickActionItem('Daily Challenge', Icons.stars, () {
-          // TODO: Implement daily challenge screen
-          _showComingSoonDialog('Daily Challenge');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DailyChallengeScreen()),
+          );
         }),
         _buildQuickActionItem('Journal', Icons.book, () {
-          // TODO: Implement journal screen
-          _showComingSoonDialog('Journal');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const JournalScreen()),
+          );
         }),
       ],
     );
@@ -180,38 +192,18 @@ class HomeScreenState extends State<HomeScreen2> {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0xffACE1AF), //secondaryColor.withOpacity(0.1),
+          color: const Color(0xffACE1AF), //secondaryColor.withOpacity(0.1),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: secondaryColor),
+            Icon(icon, size: 40, color: Colors.black),
             const SizedBox(height: 10),
-            Text(title, style: TextStyle(color: Colors.black)),
+            Text(title, style: const TextStyle(color: Colors.black)),
           ],
         ),
       ),
-    );
-  }
-
-  void _showComingSoonDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Coming Soon'),
-          content: Text('The $feature feature is coming soon!'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 

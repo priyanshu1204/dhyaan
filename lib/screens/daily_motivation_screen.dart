@@ -89,7 +89,7 @@ class DailyMotivationScreenState extends State<DailyMotivationScreen> {
                 if (isLoading)
                   const CircularProgressIndicator(
                     valueColor:
-                        const AlwaysStoppedAnimation<Color>(Colors.green),
+                        AlwaysStoppedAnimation<Color>(Colors.green),
                   )
                 else if (error.isNotEmpty)
                   Text(
