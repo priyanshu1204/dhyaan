@@ -15,7 +15,7 @@ class _MusicScreenState extends State<MusicScreen> {
   Duration position = Duration.zero;
 
   List<Map<String, String>> meditationTracks = [
-    {'title': 'Peaceful Rainhjd', 'url': 'music/calm-quest.mp3'},
+    {'title': 'Peaceful Rain', 'url': 'music/calm-quest.mp3'},
     {'title': 'Ocean Waves', 'url': 'music/cold-october.mp3'},
     {'title': 'Forest Ambience', 'url': 'music/forest-lullaby.mp3'},
     {'title': 'Calm Quest', 'url': 'music/relax-your-mind.mp3'},

@@ -1,17 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class JournalEntry {
+  final String id;
   final String date;
   final String title;
   final String content;
   final String mood;
 
   JournalEntry({
+    required this.id,
     required this.date,
     required this.title,
     required this.content,
     required this.mood,
   });
+
+  // Convert to Map for Firestore
+  Map<String, dynamic> toMap() {
+    return {
+      'date': date,
+      'title': title,
+      'content': content,
+      'mood': mood,
+    };
+  }
+
+  // Create JournalEntry from Firestore document
+  factory JournalEntry.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return JournalEntry(
+      id: doc.id,
+      date: data['date'] ?? '',
+      title: data['title'] ?? '',
+      content: data['content'] ?? '',
+      mood: data['mood'] ?? '😊',
+    );
+  }
 }
 
 class JournalScreen extends StatefulWidget {
@@ -22,34 +48,113 @@ class JournalScreen extends StatefulWidget {
 }
 
 class _JournalScreenState extends State<JournalScreen> {
-  final List<JournalEntry> _entries = [];
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   String _selectedMood = '😊';
 
-  void _addEntry() {
-    if (_titleController.text.isNotEmpty &&
-        _contentController.text.isNotEmpty) {
-      setState(() {
-        _entries.add(JournalEntry(
-          date: DateTime.now().toString().split(' ')[0],
-          title: _titleController.text,
-          content: _contentController.text,
-          mood: _selectedMood,
-        ));
-        _titleController.clear();
-        _contentController.clear();
-        _selectedMood = '😊';
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Stream<QuerySnapshot> get _entriesStream {
+    return _firestore
+        .collection('users')
+        .doc(_auth.currentUser?.uid)
+        .collection('journal_entries')
+        .orderBy('date', descending: true)
+        .snapshots();
+  }
+
+  Future<void> _addEntry() async {
+    if (_titleController.text.isEmpty || _contentController.text.isEmpty)
+      return;
+
+    try {
+      await _firestore
+          .collection('users')
+          .doc(_auth.currentUser?.uid)
+          .collection('journal_entries')
+          .add({
+        'date': DateTime.now().toString().split(' ')[0],
+        'title': _titleController.text,
+        'content': _contentController.text,
+        'mood': _selectedMood,
+        'timestamp': FieldValue.serverTimestamp(),
       });
-      Navigator.pop(context);
+
+      _titleController.clear();
+      _contentController.clear();
+      _selectedMood = '😊';
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      _showErrorDialog('Error saving journal entry');
     }
   }
 
-  void _showAddEntryDialog() {
+  Future<void> _updateEntry(String entryId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(_auth.currentUser?.uid)
+          .collection('journal_entries')
+          .doc(entryId)
+          .update({
+        'title': _titleController.text,
+        'content': _contentController.text,
+        'mood': _selectedMood,
+        'lastEdited': FieldValue.serverTimestamp(),
+      });
+
+      _titleController.clear();
+      _contentController.clear();
+      _selectedMood = '😊';
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      _showErrorDialog('Error updating journal entry');
+    }
+  }
+
+  Future<void> _deleteEntry(String entryId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(_auth.currentUser?.uid)
+          .collection('journal_entries')
+          .doc(entryId)
+          .delete();
+    } catch (e) {
+      _showErrorDialog('Error deleting journal entry');
+    }
+  }
+
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Journal Entry'),
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEntryDialog([JournalEntry? existingEntry]) {
+    if (existingEntry != null) {
+      _titleController.text = existingEntry.title;
+      _contentController.text = existingEntry.content;
+      _selectedMood = existingEntry.mood;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(existingEntry == null ? 'New Journal Entry' : 'Edit Entry'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -85,12 +190,23 @@ class _JournalScreenState extends State<JournalScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              _titleController.clear();
+              _contentController.clear();
+              _selectedMood = '😊';
+              Navigator.pop(context);
+            },
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: _addEntry,
-            child: const Text('Save'),
+            onPressed: () {
+              if (existingEntry == null) {
+                _addEntry();
+              } else {
+                _updateEntry(existingEntry.id);
+              }
+            },
+            child: Text(existingEntry == null ? 'Save' : 'Update'),
           ),
         ],
       ),
@@ -112,37 +228,90 @@ class _JournalScreenState extends State<JournalScreen> {
             colors: [const Color(0xFFA8D8B9).withOpacity(0.6), Colors.white],
           ),
         ),
-        child: _entries.isEmpty
-            ? Center(
+        child: StreamBuilder<QuerySnapshot>(
+          stream: _entriesStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Center(child: Text('Something went wrong'));
+            }
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return Center(
                 child: Text(
                   'Start journaling your meditation journey',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-              )
-            : ListView.builder(
-                itemCount: _entries.length,
-                itemBuilder: (context, index) {
-                  final entry = _entries[index];
-                  return Card(
-                    margin: const EdgeInsets.all(8),
-                    child: ListTile(
-                      leading: Text(
-                        entry.mood,
-                        style: const TextStyle(fontSize: 24),
-                      ),
-                      title: Text(entry.title),
-                      subtitle: Text(
-                        '${entry.date}\n${entry.content}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+              );
+            }
+
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                final entry = JournalEntry.fromDocument(doc);
+                return Card(
+                  margin: const EdgeInsets.all(8),
+                  child: ListTile(
+                    leading: Text(
+                      entry.mood,
+                      style: const TextStyle(fontSize: 24),
                     ),
-                  );
-                },
-              ),
+                    title: Text(entry.title),
+                    subtitle: Text(
+                      '${entry.date}\n${entry.content}',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: PopupMenuButton(
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Text('Edit'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Delete'),
+                        ),
+                      ],
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showEntryDialog(entry);
+                        } else if (value == 'delete') {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Delete Entry'),
+                              content: const Text(
+                                  'Are you sure you want to delete this entry?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    _deleteEntry(entry.id);
+                                  },
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddEntryDialog,
+        onPressed: () => _showEntryDialog(),
         backgroundColor: const Color(0xFFD4B2D8),
         child: const Icon(Icons.add),
       ),
