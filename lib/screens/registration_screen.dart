@@ -33,8 +33,8 @@ class RegistrationScreenState extends State<RegistrationScreen> {
               children: [
                 SizedBox(
                   height: 200,
-                  child: Lottie.network(
-                    'https://assets9.lottiefiles.com/packages/lf20_zzfkbs4m.json',
+                  child: Lottie.asset(
+                    'assets/images/login_animation.json',
                     fit: BoxFit.contain,
                   ),
                 ),

@@ -1,4 +1,3 @@
-//import 'package:dhyan/screens/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../homescreen2.dart';
@@ -14,14 +13,13 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
-          child: Expanded(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Image.asset("assets/images/meditation.png"),
                 SizedBox(
                   height: 200, // Adjust this value as needed
                   child: Lottie.network(
@@ -58,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                     "Let's get started",
                     style: kButtonTextStyle,
                   ),
-                )
+                ),
               ],
             ),
           ),
